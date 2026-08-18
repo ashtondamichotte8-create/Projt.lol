@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WAYPOINT · Agent Routing Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0b0d11;
+            color: #eef2f6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ── glass container ── */
+        .dashboard {
+            max-width: 1280px;
+            width: 100%;
+            background: rgba(18, 22, 30, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 2.5rem;
+            padding: 2.5rem 2.8rem;
+            box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.2s ease;
+        }
+
+        /* ── header ── */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.2rem 2rem;
+            margin-bottom: 2.8rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(145deg, #7c5cfc, #4f3bcc);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #fff;
+            box-shadow: 0 8px 20px -6px rgba(99, 78, 255, 0.35);
+        }
+
+        .brand h1 {
+            font-size: 1.9rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #f0f3ff 0%, #b7abff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand span {
+            font-weight: 400;
+            font-size: 0.85rem;
+            color: #8892b0;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.2rem 0.9rem;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            -webkit-text-fill-color: #8892b0;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(0, 230, 150, 0.08);
+            padding: 0.5rem 1.3rem 0.5rem 1rem;
+            border-radius: 60px;
+            border: 1px solid rgba(0, 230, 150, 0.15);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #7ee0b0;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #00e696;
+            border-radius: 50%;
+            box-shadow: 0 0 14px #00e69666;
+            animation: pulse-dot 2.2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.85);
+            }
+        }
+
+        /* ── stats row ── */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2.8rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 1.4rem;
+            padding: 1.2rem 1.4rem;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background 0.2s;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #7a84a6;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-top: 0.2rem;
+            color: #f0f3ff;
+        }
+
+        .stat-value small {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #6a7496;
+            margin-left: 0.2rem;
+        }
+
+        /* ── search / waypoint call ── */
+        .waypoint-call {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 1.8rem;
+            padding: 1.8rem 2rem;
+            margin-bottom: 2.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem 1.8rem;
+        }
+
+        .waypoint-call label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #7a84a6;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .input-group {
+            flex: 2 1 260px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            background: #0f131c;
+            border: 1px solid #262d3d;
+            border-radius: 14px;
+            padding: 0.8rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            color: #eef2f6;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: #7c5cfc;
+            box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.15);
+        }
+
+        .input-group input::placeholder {
+            color: #4f5979;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #7c5cfc, #5b3fd9);
+            border: none;
+            border-radius: 40px;
+            padding: 0.8rem 2.2rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 6px 18px -4px rgba(99, 78, 255, 0.3);
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px -6px rgba(99, 78, 255, 0.45);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #262d3d;
+            border-radius: 40px;
+            padding: 0.8rem 2rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #c8cee6;
+            cursor: pointer;
+            transition: background 0.2s, border 0.2s;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #3d4560;
+        }
+
+        /* ── response / output ── */
+        .response-area {
+            background: #0b0e15;
+            border-radius: 1.6rem;
+            padding: 1.6rem 2rem;
+            margin-bottom: 2.8rem;
+            border: 1px solid #1a1f2b;
+            min-height: 110px;
+            max-height: 320px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #c8cee6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: 'Inter', monospace;
+        }
+
+        .response-area .empty {
+            color: #4f5979;
+            font-style: italic;
+        }
+
+        .response-area .label-pill {
+            display: inline-block;
+            background: rgba(124, 92, 252, 0.15);
+            color: #b7abff;
+            padding: 0.1rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            margin-right: 0.4rem;
+        }
+
+        /* ── services grid ── */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            color: #eef2f6;
+            letter-spacing: -0.01em;
+        }
+
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 1.6rem;
+            padding: 1.6rem 1.6rem 1.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background 0.2s, transform 0.15s;
+            cursor: default;
+        }
+
+        .service-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateY(-3px);
+        }
+
+        .service-card .badge {
+            display: inline-block;
+            background: rgba(0, 230, 150, 0.1);
+            color: #7ee0b0;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.15rem 0.8rem;
+            border-radius: 40px;
+            margin-bottom: 0.7rem;
+            border: 1px solid rgba(0, 230, 150, 0.1);
+        }
+
+        .service-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .service-card p {
+            font-size: 0.85rem;
+            color: #8892b0;
+            line-height: 1.5;
+        }
+
+        .service-card .link {
+            display: inline-block;
+            margin-top: 0.9rem;
+            color: #b7abff;
+            font-weight: 500;
+            font-size: 0.8rem;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border 0.2s;
+        }
+
+        .service-card .link:hover {
+            border-bottom-color: #b7abff;
+        }
+
+        /* ── footer ── */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1.8rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.8rem;
+            color: #4f5979;
+        }
+
+        .footer a {
+            color: #7a84a6;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: #c8cee6;
+        }
+
+        .footer .discord {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(88, 101, 242, 0.1);
+            padding: 0.3rem 1.2rem;
+            border-radius: 40px;
+            border: 1px solid rgba(88, 101, 242, 0.15);
+            color: #b7beff;
+            font-weight: 500;
+        }
+
+        /* ── scroll ── */
+        .response-area::-webkit-scrollbar {
+            width: 4px;
+        }
+        .response-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .response-area::-webkit-scrollbar-thumb {
+            background: #2a3145;
+            border-radius: 8px;
+        }
+
+        /* ── responsive ── */
+        @media (max-width: 720px) {
+            .dashboard {
+                padding: 1.5rem 1.2rem;
+                border-radius: 1.8rem;
+            }
+            .brand h1 {
+                font-size: 1.5rem;
+            }
+            .waypoint-call {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-primary,
+            .btn-secondary {
+                justify-content: center;
+                width: 100%;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            .services {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="brand">
+                <div class="brand-icon">⛯</div>
+                <div>
+                    <h1>WAYPOINT <span>v1</span></h1>
+                </div>
+            </div>
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                <span>21K+ agents · 99.9% uptime</span>
+            </div>
+        </header>
+
+        <!-- STATS -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Indexed Agents</div>
+                <div class="stat-value">21,843 <small>+12</small></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Beams</div>
+                <div class="stat-value">812K <small>↑ 3.2%</small></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg. Latency</div>
+                <div class="stat-value">142 <small>ms</small></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Live Probes</div>
+                <div class="stat-value">99.8 <small>%</small></div>
+            </div>
+        </div>
+
+        <!-- WAYPOINT CALL -->
+        <div class="waypoint-call">
+            <div class="input-group" style="flex: 2 1 300px;">
+                <label for="agentInput">Agent ID</label>
+                <input type="text" id="agentInput" placeholder="e.g. jhibird/heyspark" value="jhibird/heyspark" />
+            </div>
+            <div class="input-group" style="flex: 1 1 180px;">
+                <label for="toolSelect">Tool</label>
+                <select id="toolSelect">
+                    <option value="search_businesses">search_businesses</option>
+                    <option value="get_business_details">get_business_details</option>
+                    <option value="get_reviews_summary">get_reviews_summary</option>
+                    <option value="list_categories">list_categories</option>
+                </select>
+            </div>
+            <div class="input-group" style="flex: 2 1 240px;">
+                <label for="queryInput">Query</label>
+                <input type="text" id="queryInput" placeholder="restaurants, Asheville" value="restaurants, Asheville" />
+            </div>
+            <button class="btn-primary" id="invokeBtn">
+                <span>⚡</span> Invoke Agent
+            </button>
+            <button class="btn-secondary" id="discoverBtn">🔍 Discover</button>
+        </div>
+
+        <!-- RESPONSE -->
+        <div class="response-area" id="responseArea">
+            <span class="empty">⏎  Ready — invoke an agent or discover available tools.</span>
+        </div>
+
+        <!-- SERVICES (inspired by Immortal X) -->
+        <div class="section-title">✦ Featured Agents</div>
+        <div class="services">
+            <div class="service-card">
+                <span class="badge">● live</span>
+                <h3>HeySpark</h3>
+                <p>Local business discovery &amp; details.</p>
+                <a href="#" class="link" data-agent="jhibird/heyspark" data-tool="search_businesses">→ search_businesses</a>
+            </div>
+            <div class="service-card">
+                <span class="badge">● live</span>
+                <h3>WeatherFlow</h3>
+                <p>Real‑time weather &amp; forecasts.</p>
+                <a href="#" class="link" data-agent="weather/flow" data-tool="get_forecast">→ get_forecast</a>
+            </div>
+            <div class="service-card">
+                <span class="badge">● live</span>
+                <h3>NewsPulse</h3>
+                <p>Headlines &amp; sentiment analysis.</p>
+                <a href="#" class="link" data-agent="news/pulse" data-tool="top_headlines">→ top_headlines</a>
+            </div>
+            <div class="service-card">
+                <span class="badge">● live</span>
+                <h3>CodeAssist</h3>
+                <p>Code explanation &amp; snippets.</p>
+                <a href="#" class="link" data-agent="code/assist" data-tool="explain">→ explain</a>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <span>© 2026 WAYPOINT · Agent Routing Platform</span>
+            <div>
+                <a href="#" style="margin-right:1.2rem;">Docs</a>
+                <a href="#" style="margin-right:1.2rem;">Status</a>
+                <a href="#" class="discord">💬 Discord</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            const responseArea = document.getElementById('responseArea');
+            const agentInput = document.getElementById('agentInput');
+            const toolSelect = document.getElementById('toolSelect');
+            const queryInput = document.getElementById('queryInput');
+            const invokeBtn = document.getElementById('invokeBtn');
+            const discoverBtn = document.getElementById('discoverBtn');
+
+            // ── helper: set response ──
+            function setResponse(text, isError = false) {
+                responseArea.innerHTML = text;
+                if (isError) {
+                    responseArea.style.color = '#f28b82';
+                } else {
+                    responseArea.style.color = '#c8cee6';
+                }
+            }
+
+            function setEmpty() {
+                responseArea.innerHTML = '<span class="empty">⏎  Ready — invoke an agent or discover available tools.</span>';
+                responseArea.style.color = '#c8cee6';
+            }
+
+            // ── format JSON nicely ──
+            function formatJson(obj) {
+                try {
+                    return JSON.stringify(obj, null, 2);
+                } catch (_) {
+                    return String(obj);
+                }
+            }
+
+            // ── call WAYPOINT public API ──
+            async function callWaypoint(endpoint, options = {}) {
+                const base = 'https://api.waypoint.ing';
+                const url = base + endpoint;
+                const res = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json',
+                        ...(options.headers || {})
+                    },
+                    ...options
+                });
+                if (!res.ok) {
+                    let errMsg = `HTTP ${res.status}`;
+                    try {
+                        const errBody = await res.json();
+                        errMsg += ` · ${JSON.stringify(errBody)}`;
+                    } catch (_) { /* ignore */ }
+                    throw new Error(errMsg);
+                }
+                return res.json();
+            }
+
+            // ── invoke agent (low‑level via gateway) ──
+            async function invokeAgent(agentId, toolName, queryString) {
+                // parse owner/agent from "owner/agent"
+                const parts = agentId.split('/');
+                if (parts.length < 2) throw new Error('Agent ID must be in format "owner/agent"');
+                const owner = parts[0];
+                const agent = parts.slice(1).join('/');
+
+                // build payload: we use the public gateway endpoint
+                // According to the SDK docs, the gateway task endpoint is:
+                // POST /v1/gateway/task
+                // body: { owner, agent, capability, input }
+                const payload = {
+                    owner,
+                    agent,
+                    capability: toolName,
+                    input: {
+                        tool: toolName,
+                        query: queryString
+                    }
+                };
+
+                // The public gateway may require auth for some calls.
+                // We'll try it; if it fails, we fall back to directory search.
+                const result = await callWaypoint('/v1/gateway/task', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                return result;
+            }
+
+            // ── discover tools for an agent (public) ──
+            async function discoverTools(agentId) {
+                const endpoint = `/v1/agents/${agentId}/tools`;
+                return callWaypoint(endpoint);
+            }
+
+            // ── search directory (public) ──
+            async function searchDirectory(query) {
+                const params = new URLSearchParams({
+                    tool_query: query || '',
+                    limit: 6
+                });
+                return callWaypoint(`/v1/agents/directory?${params.toString()}`);
+            }
+
+            // ── main invoke handler ──
+            async function handleInvoke() {
+                const agent = agentInput.value.trim();
+                const tool = toolSelect.value;
+                const query = queryInput.value.trim();
+
+                if (!agent) {
+                    setResponse('⚠️ Please enter an Agent ID (e.g. jhibird/heyspark).', true);
+                    return;
+                }
+
+                setResponse('⏳ Calling WAYPOINT gateway …');
+
+                try {
+                    const data = await invokeAgent(agent, tool, query);
+                    // Show the full response
+                    const output = data.output || data.result || data;
+                    let display = `✅ Agent \`${agent}\` · tool \`${tool}\`\n\n`;
+                    if (typeof output === 'string') {
+                        display += output;
+                    } else {
+                        display += formatJson(output);
+                    }
+                    if (data.metadata) {
+                        display += `\n\n📊 latency: ${data.metadata.latency_ms ?? '?'} ms`;
+                    }
+                    setResponse(display);
+                } catch (err) {
+                    // fallback: try directory search to show something useful
+                    try {
+                        setResponse(`⚠️ Gateway call failed (${err.message}).\n\nFalling back to directory search …`);
+                        const dirData = await searchDirectory(tool);
+                        const agents = dirData.data || [];
+                        if (agents.length === 0) {
+                            setResponse(`No agents found for "${tool}". Try a different tool.`, true);
+                            return;
+                        }
+                        let fallback = `🔍 Directory results for "${tool}":\n\n`;
+                        agents.slice(0, 5).forEach((a, i) => {
+                            fallback += `${i+1}. ${a.short_id || a.id || '?'}  ·  ${a.description || ''}\n`;
+                            if (a.tool_count) fallback += `   tools: ${a.tool_count}\n`;
+                        });
+                        setResponse(fallback);
+                    } catch (fallbackErr) {
+                        setResponse(`❌ Error: ${err.message}`, true);
+                    }
+                }
+            }
+
+            // ── discover handler ──
+            async function handleDiscover() {
+                const agent = agentInput.value.trim();
+                if (!agent) {
+                    setResponse('⚠️ Enter an Agent ID to discover tools.', true);
+                    return;
+                }
+
+                setResponse(`🔍 Discovering tools for ${agent} …`);
+
+                try {
+                    const data = await discoverTools(agent);
+                    const tools = data.tools || [];
+                    if (tools.length === 0) {
+                        setResponse(`No tools found for agent "${agent}".`);
+                        return;
+                    }
+                    let display = `🧰 Tools for \`${agent}\`:\n\n`;
+                    tools.forEach((t) => {
+                        display += `• ${t.name}  —  ${t.description || ''}\n`;
+                    });
+                    setResponse(display);
+                } catch (err) {
+                    // fallback: try directory search
+                    try {
+                        const dirData = await searchDirectory(agent);
+                        const agents = dirData.data || [];
+                        if (agents.length === 0) {
+                            setResponse(`No results for "${agent}".`, true);
+                            return;
+                        }
+                        let fallback = `🔍 Directory (search "${agent}"):\n\n`;
+                        agents.slice(0, 5).forEach((a, i) => {
+                            fallback += `${i+1}. ${a.short_id || a.id || '?'}  ·  ${a.description || ''}\n`;
+                        });
+                        setResponse(fallback);
+                    } catch (fallbackErr) {
+                        setResponse(`❌ Discovery error: ${err.message}`, true);
+                    }
+                }
+            }
+
+            // ── event binding ──
+            invokeBtn.addEventListener('click', handleInvoke);
+            discoverBtn.addEventListener('click', handleDiscover);
+
+            // Enter key on any input triggers invoke
+            document.querySelectorAll('#agentInput, #queryInput, #toolSelect').forEach(el => {
+                el.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleInvoke();
+                    }
+                });
+            });
+
+            // ── quick links on service cards ──
+            document.querySelectorAll('.service-card .link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const agent = link.dataset.agent;
+                    const tool = link.dataset.tool;
+                    if (agent) {
+                        agentInput.value = agent;
+                    }
+                    if (tool) {
+                        // try to match select option
+                        const opt = Array.from(toolSelect.options).find(o => o.value === tool);
+                        if (opt) toolSelect.value = tool;
+                        else {
+                            // if not in select, add it temporarily?
+                            // we'll just set it as a placeholder
+                            toolSelect.value = 'search_businesses';
+                        }
+                    }
+                    // auto-invoke
+                    handleInvoke();
+                });
+            });
+
+            // ── set a default example ──
+            setEmpty();
+
+            // ── extra: if you want to show a welcome message with a quick example ──
+            console.log('WAYPOINT Dashboard ready. Try "jhibird/heyspark" with search_businesses.');
+        })();
+    </script>
+
+</body>
+</html>
